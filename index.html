@@ -34,6 +34,7 @@
             <h5 class="modal-title" id="formModalLabel">Add Task</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
+
           <!-- Modal Body -->
           <div class="modal-body">
             <form id="add-task-form">
@@ -42,11 +43,13 @@
                 <label for="task-title" class="col-form-label">Title:</label>
                 <input type="text" class="form-control" id="task-title" placeholder="Enter task title">
               </div>
+
               <!-- Task Description -->
               <div class="form-group">
                 <label for="task-description" class="col-form-label">Description:</label>
                 <textarea class="form-control" id="task-description" placeholder="Enter task description"></textarea>
               </div>
+
               <!-- Task Due Date -->
               <div class="form-group">
                 <label for="task-due-date" class="col-form-label">Due Date:</label>
@@ -56,11 +59,12 @@
           </div>
           <!-- Modal Footer -->
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="add-task-button">Add Task</button>
+            <button type="click" class="btn btn-primary" id="add-task-button">Add Task</button>
           </div>
         </div>
       </div>
     </div>
+    
     <!-- Task List Container -->
     <div id="task-list"></div>
    <div class="row swim-lanes text-center justify-content-between">
