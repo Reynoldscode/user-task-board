@@ -1,65 +1,40 @@
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+// Get the popup form and button
+let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
+let nextId = JSON.parse(localStorage.getItem("nextId"))  || 0;
 
-const formModal = document.getElementById('formModal');
-const addTaskButton = document.getElementById('add-task-button');
-const todoCardsContainer = document.getElementById('todo-cards');
+const popupForm = document.getElementById('formModal');
+const addButton = document.getElementById('add-task-button');
+const taskListContainer = document.getElementById('task-list');
 
-addTaskButton.addEventListener('click', (e) => {
+function generateTaskId(){
+  return nextId
+}
+ // Add the task to the page
+ function addTask(title, dueDate, description) {
+  const task = {
+    id: generateTaskId(),
+    title,
+    dueDate,
+    description,
+  };
+  addTaskToList(task);
+  renderTaskList();
+}
+// Add event listener to the form to handle submission
+popupForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const title = document.getElementById('task-title').value;
-  const description = document.getElementById('task-description').value;
   const dueDate = document.getElementById('task-due-date').value;
+  const description = document.getElementById('task-description').value;
+  const dueDateParsed = dayjs(dueDate);
+  addTask(title, dueDateParsed, description);
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-due-date').value = '';
+  document.getElementById('task-description').value = '';
+  popupForm.style.display='none';
+});
 
-  formModal.classList.add("hidden");
-
-  // Create a new task object
-  const task = {
-    title,
-    description,
-    dueDate,
-  };
-
-  // Add the new task to the array
-      tasks.push(task);
-
-
-  // Store the updated tasks array in localStorage
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-
-
-
-
-// // Todo: create a function to generate a unique task id
-// function generateTaskId() {
-
-// }
-
-// // Todo: create a function to create a task card
-// function createTaskCard(task) {
-
-// }
-
-// // Todo: create a function to render the task list and make cards draggable
-// function renderTaskList() {
-
-// }
-
-// // Todo: create a function to handle adding a new task
-// function handleAddTask(event){
-
-// }
-
-// // Todo: create a function to handle deleting a task
-// function handleDeleteTask(event){
-
-// }
-
-// // Todo: create a function to handle dropping a task into a new status lane
-// function handleDrop(event, ui) {
-
-// }
-
-// // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
-// $(document).ready(function () {
-
-// });
+  // Clear the form inputs
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-due-date').value = '';
+  document.getElementById('task-description').value = '';
