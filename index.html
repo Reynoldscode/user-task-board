@@ -75,8 +75,8 @@
           </div>
           <div class="card-body bg-light">
 
-      
-            <div id="todo-cards" ></div>
+      <!-- thats is the to do container -->
+            <div id="todo-cards"></div>
           </div>
 
         </div>
@@ -86,19 +86,19 @@
           <div class="card-header bg-white">
             <h2 class="card-title mb-1">In Progress</h2>
           </div>
-          <div class="card-body bg-light" >
+          <div class="card-body bg-light" ondrop="handleDrop(event)" ondragover="dragover(event)">
          
             <div id="in-progress-cards"></div>
           </div>
         </div>
         </div>
         <div class="col-12 col-lg-4 d-flex">
-          <div id="done" class="card border-light mb-3 lane flex-grow-1">
+          <div id="done" class="card border-light mb-3 lane flex-grow-1" >
             <div class="card-header bg-white">
-              <h2 cla ss="card-title mb-1">Done</h2>
+              <h2 class="card-title mb-1">Done</h2>
             </div>
           
-            <div class="card-body bg-light">
+            <div class="card-body bg-light"  ondrop="handleDrop(event)" ondragover="dragover(event)">
               <div id="done-cards"></div>
           </div>
           </div>

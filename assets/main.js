@@ -63,7 +63,11 @@ addButton.addEventListener('click', (e) => {
   document.getElementById('task-description').value = '';
   popupForm.style.display = "block";
 });
-
+function exampleDrag(e){
+  console.log("drag")
+  // const id = e.target.getAttribute("id")
+  // e.dataTransfer.setData("text/plain", id)
+}
 // Function to render the task list
 function renderTaskList() {
   todoCardsContainer.innerHTML = '';
@@ -74,17 +78,28 @@ function renderTaskList() {
     const taskCard = document.createElement('div');
     taskCard.className = 'card mb-3';
     taskCard.draggable = true; // Add the draggable attribute
-    // constructing task card
+    taskCard.id = 1
+    taskCard.setAttribute("ondragStart", "exampleDrag(event)")
+    // taskCard.ondragstart = exampleDrag();
+
+
+    // Constructing task card
     taskCard.innerHTML = `
       <h5 class="card-title">${task.title}</h5>
       <p class="card-text">${task.description}</p>
       <p class="card-text">Due: ${task.dueDate}</p>
+      <button class="btn btn-danger delete-button">Delete</button>
     `;
+    //  Add event listner for delete button
+    const deleteButton = taskCard.querySelector(".delete-button");
+    deleteButton.addEventListener("click", () =>{
+      deleteTask(addTask)
+    })
 
     // Add event listener for dragstart
     taskCard.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData('text/plain', task.id);
-      console.log("Drag started for task:", task.title);
+      console.log("Drag started for task:", todoCardsContainer);
     });
 
     // Append task card to the correct container
@@ -98,41 +113,18 @@ function renderTaskList() {
   });
 }
 
-// Add event listener for drop
-inProgressCardsContainer.addEventListener("drop", (e) => {
-  e.preventDefault();
-  console.log("Drop event triggered in 'In Progress' container");
-  const taskId = e.dataTransfer.getData('text/plain');
+// Function to handle drop event
+function handleDrop(event) {
+  event.preventDefault()
+  console.log("drop");
+ 
+  const taskId = event.dataTransfer.getData('text/plain');
   const task = taskList.find((task) => task.id === parseInt(taskId));
-  if (task) {
-    task.status = 'in-progress';
-    console.log(`Task dropped in "In Progress" container: ${task.title}`);
-  }
   renderTaskList();
-});
+  return tasks
+  
+}
 
-doneCardsContainer.addEventListener("drop", (e) => {
-  e.preventDefault();
-  console.log("Drop event triggered in 'Done' container");
-  const taskId = e.dataTransfer.getData('text/plain');
-  const task = taskList.find((task) => task.id === parseInt(taskId));
-  if (task) {
-    task.status = 'done';
-    console.log(`Task dropped in "Done" container: ${task.title}`);
-  }
-  renderTaskList();
-});
-
-// Allow the cards to be dropped
-inProgressCardsContainer.addEventListener("dragover", (e) => {
-  e.preventDefault();
-});
-
-doneCardsContainer.addEventListener("dragover", (e) => {
-  e.preventDefault();
-});
-
-
-// function storeData(){
-//   localStorage.setItem("count", JSON.stringify(taskCard))
-//   console.log(storeData)
+function dragover(e){
+  e.preventDefault()
+}
