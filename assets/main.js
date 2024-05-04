@@ -1,4 +1,3 @@
-
 const popupForm = document.getElementById('formModal');
 const addButton = document.getElementById('add-task-button');
 const taskListContainer = document.getElementById('task-list');
@@ -63,21 +62,24 @@ addButton.addEventListener('click', (e) => {
   document.getElementById('task-description').value = '';
   popupForm.style.display = "block";
 });
-function exampleDrag(e){
+
+function exampleDrag(e) {
   console.log("drag")
   // const id = e.target.getAttribute("id")
-  // e.dataTransfer.setData("text/plain", id)
+  
 }
-// Function to render the task list
+
+// Function to render the tasklist
 function renderTaskList() {
   todoCardsContainer.innerHTML = '';
   inProgressCardsContainer.innerHTML = '';
   doneCardsContainer.innerHTML = '';
-
   taskList.forEach((task) => {
     const taskCard = document.createElement('div');
     taskCard.className = 'card mb-3';
-    taskCard.draggable = true; // Add the draggable attribute
+    taskCard.draggable = true;
+
+    // Add the draggable attribute
     taskCard.id = 1
     taskCard.setAttribute("ondragStart", "exampleDrag(event)")
     // taskCard.ondragstart = exampleDrag();
@@ -90,18 +92,16 @@ function renderTaskList() {
       <p class="card-text">Due: ${task.dueDate}</p>
       <button class="btn btn-danger delete-button">Delete</button>
     `;
-    //  Add event listner for delete button
+    // Add event listener for delete button
     const deleteButton = taskCard.querySelector(".delete-button");
-    deleteButton.addEventListener("click", () =>{
-      deleteTask(addTask)
+    deleteButton.addEventListener("click", () => {
+      deleteTask(taskList)
     })
-
     // Add event listener for dragstart
     taskCard.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData('text/plain', task.id);
       console.log("Drag started for task:", todoCardsContainer);
     });
-
     // Append task card to the correct container
     if (task.status === 'to-do') {
       todoCardsContainer.appendChild(taskCard);
@@ -113,18 +113,31 @@ function renderTaskList() {
   });
 }
 
-// Function to handle drop event
-function handleDrop(event) {
-  event.preventDefault()
-  console.log("drop");
- 
-  const taskId = event.dataTransfer.getData('text/plain');
-  const task = taskList.find((task) => task.id === parseInt(taskId));
-  renderTaskList();
-  return tasks
-  
+// Function to delete a task
+function deleteTask(taskId) {
+  const taskIndex = taskList.findIndex((task) => (taskId) === taskId);
+  if (taskIndex !== -1) {
+    taskList.splice(taskIndex, 1);
+    localStorage.setItem("tasks", JSON.stringify(taskList));
+    renderTaskList();
+  }
 }
 
-function dragover(e){
+// Function to handle drop event
+function handleDrop(event) {
+  event.preventDefault();
+  const taskId = event.dataTransfer.getData('text/plain');
+  const task = taskList.find((task) => taskId === parseInt(taskId));
+  if (event.target.id === 'in-progress-cards') {
+    console.log("drop")
+    task.status = 'in-progress';
+  } else if (event.target.id === 'done-cards') {
+    task.status = 'done';
+  }
+  addTaskToList(task);
+  renderTaskList();
+}
+
+function dragover(e) {
   e.preventDefault()
 }
