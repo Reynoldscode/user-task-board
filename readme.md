@@ -18,4 +18,4 @@ Keeping the already draged card into local storage was a challenge.
 The app is ment to mak the user more organized in executing their daily and future chores.
 
 This is my Github Repo: https://github.com/Reynoldscode/user-task-board
-This is my deployed web: 
+This is my deployed web: https://reynoldscode.github.io/user-task-board/
