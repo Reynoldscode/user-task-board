@@ -1,3 +1,5 @@
+
+
 // Retrieve tasks and nextId from localStorage
 let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
 let nextId = JSON.parse(localStorage.getItem("nextId")) || 1;
@@ -11,11 +13,20 @@ function generateTaskId() {
 function createTaskCard(task) {
   const taskCard = document.createElement('div');
   taskCard.className = 'card mb-3';
-  taskCard.style.backgroundColor = 'green';
-  taskCard.style.color = 'white';
   taskCard.draggable = true;
   taskCard.setAttribute('data-id', task.id);
-  taskCard.setAttribute('data-status', 'todo'); // Initial status is 'todo'
+  taskCard.setAttribute('data-status', task.status); // Set status attribute dynamically
+
+  // Set background color based on status
+  if (task.status === 'todo') {
+    taskCard.style.backgroundColor = 'green';
+  } else if (task.status === 'in-progress') {
+    taskCard.style.backgroundColor = 'yellow';
+    taskCard.style.color = 'black'; // Change font color to black for in-progress tasks
+  } else if (task.status === 'done') {
+    taskCard.style.backgroundColor = 'red';
+  }
+
   taskCard.innerHTML = `
     <h5 class="card-title">${task.title}</h5>
     <p class="card-text">${task.description}</p>
@@ -43,11 +54,17 @@ function renderTaskList() {
   todoCardsContainer.innerHTML = '';
   inProgressCardsContainer.innerHTML = '';
   doneCardsContainer.innerHTML = '';
-  todoCardsContainer.innerHTML = '';
+  // todoCardsContainer.innerHTML = '';
   
   taskList.forEach((task) => {
     const taskCard = createTaskCard(task);
-    todoCardsContainer.appendChild(taskCard);
+    if (task.status == "todo") {
+      todoCardsContainer.appendChild(taskCard);
+    } else if (task.status === 'in-progress') {
+        inProgressCardsContainer.appendChild(taskCard);
+    } else if (task.status === 'done') {
+      doneCardsContainer.appendChild(taskCard)
+    }
   });
 }
 
@@ -101,32 +118,49 @@ function handleDrop(event) {
   const taskId = parseInt(event.dataTransfer.getData('text/plain'));
   const taskIndex = taskList.findIndex(task => task.id === taskId);
   if (taskIndex !== -1) {
-    const newStatus = event.target.parentElement.id; // Get the id of the drop target (lane)
-    const sourceLane = event.target.closest('.lane').id; // Get the id of the source lane
-    taskList[taskIndex].status = newStatus; // Update the status of the task
-    
+    const newStatus = event.target.parentElement.id; 
+    const sourceLane = event.target.closest('.lane').id;
+    taskList[taskIndex].status = newStatus; 
+    localStorage.setItem("tasks", JSON.stringify(taskList)); 
+
+    // Render the updated task list
+    renderTaskList();
+
+    // If moving from progress to done, remove the task from the progress lane
+    if (sourceLane === 'in-progress' && newStatus === 'done') {
+      const taskCard = document.querySelector(`[data-id="${taskId}"]`);
+      event.target.appendChild(taskCard);
+      taskList[taskIndex].status = newStatus; // Update the status of the task
+      // Update local storage
+      localStorage.setItem("tasks", JSON.stringify(taskList));
+
+      // Remove the task card from the progress lane
+      const progressLane = document.getElementById('in-progress-cards');
+      progressLane.removeChild(taskCard);
+      return;
+    }
+
+    // If not moving from progress to done, continue with the original logic
+    taskList[taskIndex].status = newStatus; 
     // Update local storage
     localStorage.setItem("tasks", JSON.stringify(taskList));
+    renderTaskList(); 
 
-    renderTaskList(); // Render the updated task list
-    
     // Remove the original card from its previous location
     const taskCard = document.querySelector(`[data-id="${taskId}"]`);
     taskCard.parentNode.removeChild(taskCard);
-    
+
     // Append the dropped task card to the correct lane
     event.target.appendChild(taskCard);
-    
+
     // Clear the source lane if it's not the same as the destination lane
     if (sourceLane !== newStatus) {
       const sourceLaneCards = document.getElementById(sourceLane + '-cards');
       sourceLaneCards.removeChild(taskCard);
-      
-      // Check if the source lane is 'To Do' and if it's empty, hide it
+    // Check if the source lane is 'To Do' and if it's empty, hide it
       if (sourceLane === 'todo' && sourceLaneCards.children.length === 0) {
         sourceLaneCards.style.display = 'none';
       }
-      
       // Check if the destination lane is 'Done' and if it's not empty, prevent dropping
       if (newStatus === 'done' && event.target.children.length > 1) {
         event.preventDefault();
@@ -135,10 +169,17 @@ function handleDrop(event) {
     }
   }
 }
-
 // When the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
 $(document).ready(function() {
   renderTaskList();
+
+  // Load tasks from local storage if available
+  const storedTaskData = JSON.parse(localStorage.getItem("taskData"));
+  if (storedTaskData) {
+    taskData = storedTaskData;
+    renderTaskList();
+  }
+
   $('.lane').droppable({ drop: handleDrop });
   $('#add-task-button').on('click', handleAddTask);
   $('#todo-cards').on('dragstart', '.card', function(event) {
@@ -147,8 +188,8 @@ $(document).ready(function() {
   $('#in-progress-cards, #done-cards').droppable({
     drop: function(event, ui) {
       console.log('Dropped in ' + event.target.id);
-      }
-    });
+    }
+  });
   $('#formModal').on('hidden.bs.modal', function() {
     $(this).find('form')[0].reset(); // Reset form fields
   });
