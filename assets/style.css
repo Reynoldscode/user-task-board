@@ -15,3 +15,12 @@ body {
   cursor: grab;
 }
 
+
+.card {
+  cursor: move; /* Make the cursor a move icon when hovering over a task card */
+}
+
+.lane {
+  padding: 20px; /* Add some padding to the lanes to make them droppable */
+  border: 1px solid #ccc; /* Add a border to the lanes to make them visible */
+}

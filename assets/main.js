@@ -1,143 +1,155 @@
-const popupForm = document.getElementById('formModal');
-const addButton = document.getElementById('add-task-button');
-const taskListContainer = document.getElementById('task-list');
-const todoCardsContainer = document.getElementById('todo-cards');
-const inProgressCardsContainer = document.getElementById('in-progress-cards');
-const doneCardsContainer = document.getElementById('done-cards');
-
+// Retrieve tasks and nextId from localStorage
 let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
 let nextId = JSON.parse(localStorage.getItem("nextId")) || 1;
-let storedTasks = [];
 
-window.onload = function () {
-  let storedData = JSON.parse(localStorage.getItem("tasks"));
-  if (storedData) {
-    taskList = storedData;
-  }
-  renderTaskList();
-};
-
+// Create a function to generate a unique task id
 function generateTaskId() {
   return nextId++;
 }
 
-function addTaskToList(task) {
-  taskList.push(task);
-  localStorage.setItem("tasks", JSON.stringify(taskList));
-  localStorage.setItem("nextId", nextId);
-  storeCardData(taskList);
-  console.log(task);
-}
-
-function storeCardData() {
-  const storedData = JSON.parse(localStorage.getItem("taskCard"));
-  if (storedData) {
-    taskList = taskList.concat(storedData);
-  }
-}
-
-// Add the task to the page
-function addTask(title, dueDate, description) {
-  const task = {
-    id: generateTaskId(),
-    title,
-    dueDate,
-    description,
-    status: 'to-do'
-  };
-  addTaskToList(task);
-  renderTaskList();
-}
-
-// Add event listener to the form to handle submission
-addButton.addEventListener('click', (e) => {
-  e.preventDefault();
-  const title = document.getElementById('task-title').value;
-  const dueDate = document.getElementById('task-due-date').value;
-  const description = document.getElementById('task-description').value;
-  const dueDateParsed = dayjs(dueDate);
-  addTask(title, dueDateParsed, description);
-  document.getElementById('task-title').value = '';
-  document.getElementById('task-due-date').value = '';
-  document.getElementById('task-description').value = '';
-  popupForm.style.display = "block";
-});
-
-function exampleDrag(e) {
-  console.log("drag")
-  // const id = e.target.getAttribute("id")
+// Create a function to create a task card
+function createTaskCard(task) {
+  const taskCard = document.createElement('div');
+  taskCard.className = 'card mb-3';
+  taskCard.style.backgroundColor = 'green';
+  taskCard.style.color = 'white';
+  taskCard.draggable = true;
+  taskCard.setAttribute('data-id', task.id);
+  taskCard.setAttribute('data-status', 'todo'); // Initial status is 'todo'
+  taskCard.innerHTML = `
+    <h5 class="card-title">${task.title}</h5>
+    <p class="card-text">${task.description}</p>
+    <p class="card-text">Due: ${new Date(task.dueDate).toLocaleDateString()}</p>
+    <button class="btn btn-danger delete-button">Delete</button>
+  `;
+  const deleteButton = taskCard.querySelector(".delete-button");
+  deleteButton.addEventListener("click", handleDeleteTask);
   
+  // Add dragstart event listener
+  taskCard.addEventListener('dragstart', function(event) {
+    event.dataTransfer.setData('text/plain', task.id);
+    console.log('Drag started from card:', task.id);
+  });
+
+  return taskCard;
 }
 
-// Function to render the tasklist
+// Create a function to render the task list and make cards draggable
 function renderTaskList() {
+  const todoCardsContainer = document.getElementById('todo-cards');
+  const inProgressCardsContainer = document.getElementById('in-progress-cards');
+  const doneCardsContainer = document.getElementById('done-cards');
+
   todoCardsContainer.innerHTML = '';
   inProgressCardsContainer.innerHTML = '';
   doneCardsContainer.innerHTML = '';
+  todoCardsContainer.innerHTML = '';
+  
   taskList.forEach((task) => {
-    const taskCard = document.createElement('div');
-    taskCard.className = 'card mb-3';
-    taskCard.draggable = true;
-
-    // Add the draggable attribute
-    taskCard.id = 1
-    taskCard.setAttribute("ondragStart", "exampleDrag(event)")
-    // taskCard.ondragstart = exampleDrag();
-
-
-    // Constructing task card
-    taskCard.innerHTML = `
-      <h5 class="card-title">${task.title}</h5>
-      <p class="card-text">${task.description}</p>
-      <p class="card-text">Due: ${task.dueDate}</p>
-      <button class="btn btn-danger delete-button">Delete</button>
-    `;
-    // Add event listener for delete button
-    const deleteButton = taskCard.querySelector(".delete-button");
-    deleteButton.addEventListener("click", () => {
-      deleteTask(taskList)
-    })
-    // Add event listener for dragstart
-    taskCard.addEventListener("dragstart", (e) => {
-      e.dataTransfer.setData('text/plain', task.id);
-      console.log("Drag started for task:", todoCardsContainer);
-    });
-    // Append task card to the correct container
-    if (task.status === 'to-do') {
-      todoCardsContainer.appendChild(taskCard);
-    } else if (task.status === 'in-progress') {
-      inProgressCardsContainer.appendChild(taskCard);
-    } else if (task.status === 'done') {
-      doneCardsContainer.appendChild(taskCard);
-    }
+    const taskCard = createTaskCard(task);
+    todoCardsContainer.appendChild(taskCard);
   });
 }
 
-// Function to delete a task
-function deleteTask(taskId) {
-  const taskIndex = taskList.findIndex((task) => (taskId) === taskId);
-  if (taskIndex !== -1) {
-    taskList.splice(taskIndex, 1);
-    localStorage.setItem("tasks", JSON.stringify(taskList));
-    renderTaskList();
+// Create a function to handle adding a new task
+function handleAddTask(event) {
+  event.preventDefault();
+  const title = document.getElementById('task-title').value;
+  const description = document.getElementById('task-description').value;
+  const dueDate = document.getElementById('task-due-date').value;
+  const task = {
+    id: generateTaskId(),
+    title,
+    description,
+    dueDate,
+    status: 'todo' // Initial status is 'todo'
+  };
+
+ taskList.push(task);
+  localStorage.setItem("tasks", JSON.stringify(taskList));
+  localStorage.setItem("nextId", nextId);
+  const taskCard = createTaskCard(task);
+  const todoCardsContainer = document.getElementById('todo-cards');
+  if (todoCardsContainer.children.length === 0) {
+    todoCardsContainer.style.display = 'block';
   }
+  
+  todoCardsContainer.appendChild(taskCard);
+  $('#formModal').modal('hide');
+  document.getElementById('formModal').style.display = 'none';
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-description').value = '';
+  document.getElementById('task-due-date').value = '';
 }
 
-// Function to handle drop event
+// Create a function to handle deleting a task
+function handleDeleteTask(event) {
+  const card = event.target.closest('.card');
+  const taskId = parseInt(card.getAttribute('data-id'));
+  taskList = taskList.filter(task => task.id !== taskId);
+  localStorage.setItem("tasks", JSON.stringify(taskList));
+  card.remove();
+}
+
+function dragover(event) {
+  event.preventDefault();
+}
+
+// Create a function to handle dropping a task into a new status lane
 function handleDrop(event) {
   event.preventDefault();
-  const taskId = event.dataTransfer.getData('text/plain');
-  const task = taskList.find((task) => taskId === parseInt(taskId));
-  if (event.target.id === 'in-progress-cards') {
-    console.log("drop")
-    task.status = 'in-progress';
-  } else if (event.target.id === 'done-cards') {
-    task.status = 'done';
+  const taskId = parseInt(event.dataTransfer.getData('text/plain'));
+  const taskIndex = taskList.findIndex(task => task.id === taskId);
+  if (taskIndex !== -1) {
+    const newStatus = event.target.parentElement.id; // Get the id of the drop target (lane)
+    const sourceLane = event.target.closest('.lane').id; // Get the id of the source lane
+    taskList[taskIndex].status = newStatus; // Update the status of the task
+    
+    // Update local storage
+    localStorage.setItem("tasks", JSON.stringify(taskList));
+
+    renderTaskList(); // Render the updated task list
+    
+    // Remove the original card from its previous location
+    const taskCard = document.querySelector(`[data-id="${taskId}"]`);
+    taskCard.parentNode.removeChild(taskCard);
+    
+    // Append the dropped task card to the correct lane
+    event.target.appendChild(taskCard);
+    
+    // Clear the source lane if it's not the same as the destination lane
+    if (sourceLane !== newStatus) {
+      const sourceLaneCards = document.getElementById(sourceLane + '-cards');
+      sourceLaneCards.removeChild(taskCard);
+      
+      // Check if the source lane is 'To Do' and if it's empty, hide it
+      if (sourceLane === 'todo' && sourceLaneCards.children.length === 0) {
+        sourceLaneCards.style.display = 'none';
+      }
+      
+      // Check if the destination lane is 'Done' and if it's not empty, prevent dropping
+      if (newStatus === 'done' && event.target.children.length > 1) {
+        event.preventDefault();
+        return;
+      }
+    }
   }
-  addTaskToList(task);
-  renderTaskList();
 }
 
-function dragover(e) {
-  e.preventDefault()
-}
+// When the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
+$(document).ready(function() {
+  renderTaskList();
+  $('.lane').droppable({ drop: handleDrop });
+  $('#add-task-button').on('click', handleAddTask);
+  $('#todo-cards').on('dragstart', '.card', function(event) {
+    console.log('Drag started from To-Do card');
+  });
+  $('#in-progress-cards, #done-cards').droppable({
+    drop: function(event, ui) {
+      console.log('Dropped in ' + event.target.id);
+      }
+    });
+  $('#formModal').on('hidden.bs.modal', function() {
+    $(this).find('form')[0].reset(); // Reset form fields
+  });
+});
